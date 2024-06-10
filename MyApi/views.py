@@ -10,6 +10,7 @@ from rest_framework import status
 from django.db import IntegrityError
 from django.http import JsonResponse
 import time
+from decimal import Decimal
 
 
 
@@ -70,8 +71,9 @@ def stop_timer(request,pk):
         elapsed_time = time.time() - start_time
         table = get_object_or_404(Table, id=pk)  # Replace with the correct logic to identify the Table instance
         table.is_running = False
-        table.time = elapsed_time
+        table.time = Decimal(elapsed_time)
         table.end_time= now()
+        table.price=(table.rate * table.time)/Decimal(60)
         table.save()
         return JsonResponse({'status': 'Timer stopped', 'elapsed_time': elapsed_time})
     else:

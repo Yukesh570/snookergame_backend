@@ -18,7 +18,3 @@ class TableSerializer(serializers.ModelSerializer):
 
 
 
-class TimeSerializer(serializers.ModelSerializer):
-    class Meta:
-        model=Table
-        fields=['time']
