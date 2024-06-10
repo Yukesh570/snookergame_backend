@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stopwatch</title>
+</head>
+<body>
+    <h1>Stopwatch</h1>
+    <button id="start">Start</button>
+    <button id="stop">Stop</button>
+    <div id="display"></div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            $('#start').click(function () {
+                $.ajax({
+                    url: '/start_timer/',
+                    type: 'GET',
+                    success: function (response) {
+                        console.log(response);
+                    }
+                });
+            });
+
+            $('#stop').click(function () {
+                $.ajax({
+                    url: '/stop_timer/',
+                    type: 'GET',
+                    success: function (response) {
+                        console.log(response);
+                        $('#display').text('Elapsed Time: ' + response.elapsed_time + ' seconds');
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

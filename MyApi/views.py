@@ -1,11 +1,15 @@
-from django.shortcuts import render
+from django.shortcuts import render ,get_object_or_404
 from .models import *
 from .serializers import *
+from django.utils.timezone import now
+
+from rest_framework.decorators import action
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
 from django.db import IntegrityError
-
+from django.http import JsonResponse
+import time
 
 
 
@@ -36,5 +40,42 @@ def gettable(request,pk):
     return Response(serializers.data)
 
 
+        
+@api_view(['GET'])
+def getalltable(request):
+    table=Table.objects.all()
+    serializers=TableSerializer(table,many=True)
+    return Response(serializers.data)
+
+
+
+def index(request):
+    return render(request,'index.html')
+
+def start_timer(request,pk):
+    request.session['start_time'] = time.time()
+    table =get_object_or_404(Table,id=pk)
+    table.start_time= now()
+    table.time = 0
+    table.is_running =True
+    table.save()
+
+    return JsonResponse({'status': 'Timer started'})
+
+
+def stop_timer(request,pk):
+    if 'start_time' in request.session:
+        start_time = request.session.pop('start_time')
+
+        elapsed_time = time.time() - start_time
+        table = get_object_or_404(Table, id=pk)  # Replace with the correct logic to identify the Table instance
+        table.is_running = False
+        table.time = elapsed_time
+        table.end_time= now()
+        table.save()
+        return JsonResponse({'status': 'Timer stopped', 'elapsed_time': elapsed_time})
+    else:
+        return JsonResponse({'status': 'No timer started'})
+    
         
     
