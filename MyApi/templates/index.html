@@ -1,40 +1,25 @@
+<!-- templates/index.html -->
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stopwatch</title>
+    <title>Snooker Video Stream</title>
 </head>
 <body>
-    <h1>Stopwatch</h1>
-    <button id="start">Start</button>
-    <button id="stop">Stop</button>
-    <div id="display"></div>
+    <h1>Snooker Video Stream</h1>
+    <!-- <img id="video" width="500" height="500" src="{% url 'video_stream' pk=1 %}"> -->
+    <img id="video" width="500" height="500">
 
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
-        $(document).ready(function () {
-            $('#start').click(function () {
-                $.ajax({
-                    url: '/start_timer/',
-                    type: 'GET',
-                    success: function (response) {
-                        console.log(response);
-                    }
-                });
-            });
+        console.log('pk',pk)
+        // Get the primary key value from the server-side or any other source
+        var pk ; // Assuming pk is 1 for demonstration purposes
+        
+        // Construct the URL with the primary key value
+        var url = "/video_stream/" + pk + "/"; // Assuming the URL structure
+        console.log('pk',pk)
 
-            $('#stop').click(function () {
-                $.ajax({
-                    url: '/stop_timer/',
-                    type: 'GET',
-                    success: function (response) {
-                        console.log(response);
-                        $('#display').text('Elapsed Time: ' + response.elapsed_time + ' seconds');
-                    }
-                });
-            });
-        });
+        // Set the src attribute of the img tag with the constructed URL
+        document.getElementById("video").src = url;
     </script>
 </body>
 </html>

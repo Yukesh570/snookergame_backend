@@ -8,9 +8,11 @@ class Person(models.Model):
     Address = models.CharField(max_length=200, null=True)
     Phonenumber = models.IntegerField(null=True , blank=True)
     email = models.EmailField(max_length=200, unique=True, null=True)
+    # tabletype=models.CharField(max_length=100, null=True, blank=True)
+    tabletype=models.ForeignKey('Table',null=True, on_delete=models.SET_NULL)
     def __str__(self):
         return self.email
-
+    
 
 
 class Table(models.Model):
@@ -22,8 +24,8 @@ class Table(models.Model):
         ('5', '5'),
         ('6', '6')
     )
-    table_type= models.CharField(max_length=200, null=True, choices=TYPE_CHOICES)
-    person=models.ForeignKey(Person,null=True, on_delete=models.SET_NULL)
+    table_type= models.CharField(max_length=100, null=True, choices=TYPE_CHOICES)
+    persondetail=models.ForeignKey(Person,null=True, on_delete=models.SET_NULL)
     rate=models.DecimalField(max_digits=7,decimal_places=2,null=True , blank=True)
     price=models.DecimalField(max_digits=7,decimal_places=2,null=True , blank=True) 
     start_time = models.DateTimeField(null=True, blank=True)
