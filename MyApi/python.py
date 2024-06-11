@@ -53,7 +53,7 @@ def contour_touching(contour1,contour2,threshold_distance):
 
 
 def video_feed(request, pk):
-    video_path = r'C:\Users\Yukesh\Downloads\snookervideo\wedxx.mp4'  # Replace with your video file path
+    video_path = r'C:\Users\Yukesh\Downloads\snookervideo\viber2.mp4'  # Replace with your video file path
 
    
     print('==========================',pk)
@@ -102,7 +102,7 @@ def video_feed(request, pk):
         cv2.drawContours(frame,contours,-1,(255,0,0),5)
         cv2.drawContours(frame_copy,contours2,-1,(255,0,0),10)
 
-        threshold_distance = 60
+        threshold_distance = 18
     # Adjust this value according to your requirement
 
         # Check if the frame is not empty
