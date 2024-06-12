@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 from django.http import StreamingHttpResponse
 from .views import start_timer
-
+import time
 # Define the lower and upper bounds for red color in HSV space
 
 
@@ -53,7 +53,7 @@ def contour_touching(contour1,contour2,threshold_distance):
 
 
 def video_feed(request, pk):
-    video_path = r'C:\Users\Yukesh\Downloads\snookervideo\viber2.mp4'  # Replace with your video file path
+    video_path = r'C:\Users\Yukesh\Downloads\snookervideo\comined2.mp4'  # Replace with your video file path
 
    
     print('==========================',pk)
@@ -101,34 +101,44 @@ def video_feed(request, pk):
         contours2, hierarchy = cv2.findContours(canny2, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         frame_copy=frame.copy()
        
-            
-        for contour in contours:
-            epsilon = 0.03 * cv2.arcLength(contour, True)
-            approxed = cv2.approxPolyDP(contour, epsilon, True)
-            approx = cv2.approxPolyDP(contour, 0.01 * cv2.arcLength(contour, True), True)
+        def detection(area,approxed,gameStarted):    
+            for contour in contours:
+                epsilon = 0.03 * cv2.arcLength(contour, True)
+                approxed = cv2.approxPolyDP(contour, epsilon, True)
+                approx = cv2.approxPolyDP(contour, 0.01 * cv2.arcLength(contour, True), True)
 
-            M = cv2.moments(approx)
-            if M["m00"] != 0:
-                cX = int(M["m10"] / M["m00"])
-                cY = int(M["m01"] / M["m00"])
+                M = cv2.moments(approx)
+                if M["m00"] != 0:
+                    cX = int(M["m10"] / M["m00"])
+                    cY = int(M["m01"] / M["m00"])
 
-                # Define position and size of the text area
-                x = cX - 60  # Adjust as needed
-                y = cY + 40  # Adjust as needed
-                w = 100      # Width of the text area
+                    # Define position and size of the text area
+                    x = cX - 60  # Adjust as needed
+                    y = cY + 40  # Adjust as needed
+                    w = 100      # Width of the text area
 
-            # Calculate the area of the contour
+                # Calculate the area of the contour
 
-            area = cv2.contourArea(contour)
-            if 40000 > area > 30000:
-                # Put the area text on the frame, positioned near the bottom right of the contour's bounding rectangle
-                cv2.putText(frame, "Area: " + str(int(area)), (x + w - 60, y + 45), cv2.FONT_HERSHEY_COMPLEX, 0.5, (0, 255, 0), 1)
-            if len(approxed)==3:    
-                cv2.putText(frame, "Points: " + str(len(approxed)), (x + w - 60, y + 60), cv2.FONT_HERSHEY_COMPLEX, 0.5,(0, 255, 0), 1)
-    
+                area = cv2.contourArea(contour)
+                if 40000 > area > 30000:
+                    # Put the area text on the frame, positioned near the bottom right of the contour's bounding rectangle
+                    
+                    cv2.putText(frame, "Area: " + str(int(area)), (x + w - 60, y + 45), cv2.FONT_HERSHEY_COMPLEX, 0.5, (0, 255, 0), 1)
+                if len(approxed)==3:     
+                    cv2.putText(frame, "Points: " + str(len(approxed)), (x + w - 60, y + 60), cv2.FONT_HERSHEY_COMPLEX, 0.5,(0, 255, 0), 1)
+
+                if gameStarted:
+                    if 40000 > area > 30000 and len(approxed)==3:
+                        cv2.putText(frame, "end", (50, 100), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)                
+                        print('*******game end*******')
+
+        area=0
+        approxed=0
+     
+        detection(area,approxed,gameStarted)
 # Loop through each contour in the second set of contours
         for contour2 in contours2:
-            approx = cv2.approxPolyDP(contour2, 0.01 * cv2.arcLength(contour, True), True)
+            approx = cv2.approxPolyDP(contour2, 0.01 * cv2.arcLength(contour2, True), True)
 
             M = cv2.moments(approx)
             if M["m00"] != 0:
@@ -175,13 +185,17 @@ def video_feed(request, pk):
                     gameStarted=True
                     count += 1
                     print('count',count)
+                    time.sleep(1)  # Delay for 1 second
 
-            if gameStarted == True :
-                # detection(area,approxed)
-                if 40000 > area > 30000 and len(approxed)==3: 
+            # if gameStarted :
 
-                    print('*******game end*******')
-                    gameStarted=False
+            #     area=0
+            #     approxed=0
+            #     detection(area,approxed,gameStarted)
+            #     if 40000 > area > 30000 and len(approxed)==3: 
+
+            #         print('*******game end*******')
+            #         gameStarted=False
 
 
                     
