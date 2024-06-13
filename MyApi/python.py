@@ -43,7 +43,7 @@ def contour_touching(contour1,contour2,threshold_distance):
 
             # Check if minimum distance is less than threshold
             min_distance = np.min(distances)
-            print(min_distance)
+            # print(min_distance)
 
             if min_distance < threshold_distance:
                 return True
@@ -62,11 +62,15 @@ def video_feed(request, pk):
             raise IOError("Video file cannot be opened.")
         
     skip_frames = 2
-    frame_count = 2
+    frame_count = 0
     gameStarted=False
     count = 0 
-    
+    area=0
+    approxed=0
+    skip_until=0 
+     
     while cap.isOpened():
+        current_time=time.time()      #to get the current time
         ret, frame = cap.read()
         if not ret:
             break
@@ -96,12 +100,11 @@ def video_feed(request, pk):
         # imgGray = cv2.cvtColor(median_blur, cv2.COLOR_BGR2GRAY)
         canny=cv2.Canny(median_blur,l,u)
         canny2=cv2.Canny(median_blur_white,l,u)
-        print(pk)
         contours, hierarchy = cv2.findContours(canny, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         contours2, hierarchy = cv2.findContours(canny2, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         frame_copy=frame.copy()
        
-        def detection(area,approxed,gameStarted):    
+        def detection(area,approxed,gameStarted,count):  
             for contour in contours:
                 epsilon = 0.03 * cv2.arcLength(contour, True)
                 approxed = cv2.approxPolyDP(contour, epsilon, True)
@@ -120,22 +123,31 @@ def video_feed(request, pk):
                 # Calculate the area of the contour
 
                 area = cv2.contourArea(contour)
-                if 40000 > area > 30000:
+                if 13000 > area > 10000:
                     # Put the area text on the frame, positioned near the bottom right of the contour's bounding rectangle
                     
                     cv2.putText(frame, "Area: " + str(int(area)), (x + w - 60, y + 45), cv2.FONT_HERSHEY_COMPLEX, 0.5, (0, 255, 0), 1)
                 if len(approxed)==3:     
                     cv2.putText(frame, "Points: " + str(len(approxed)), (x + w - 60, y + 60), cv2.FONT_HERSHEY_COMPLEX, 0.5,(0, 255, 0), 1)
+                
 
-                if gameStarted:
-                    if 40000 > area > 30000 and len(approxed)==3:
-                        cv2.putText(frame, "end", (50, 100), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)                
-                        print('*******game end*******')
+                # print('-----boolean----:', gameStarted)
 
-        area=0
-        approxed=0
-     
-        detection(area,approxed,gameStarted)
+                # if gameStarted :
+                #     print(area,'-----------------------',len(approxed))
+                #     if 13000 > area > 10000 and len(approxed)==3:
+
+
+                #         cv2.putText(frame, "end", (50, 100), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)                
+                #         print('*******game end*******')
+                #         count += 1 
+                #         print('count',count)
+
+                #         gameStarted = False
+                #         print('boolean:', gameStarted)
+            return area , approxed
+        
+        area, approxed = detection(area,approxed,gameStarted,count)
 # Loop through each contour in the second set of contours
         for contour2 in contours2:
             approx = cv2.approxPolyDP(contour2, 0.01 * cv2.arcLength(contour2, True), True)
@@ -150,10 +162,10 @@ def video_feed(request, pk):
                 y = cY + 30  # Adjust as needed
                 w = 100      # Width of the text area
             # Calculate the area of the contour
-            area = cv2.contourArea(contour2)
+            area2 = cv2.contourArea(contour2)
             
             # Put the area text on the frame, positioned near the bottom right of the contour's bounding rectangle
-            cv2.putText(frame, "Area: " + str(int(area)), (x + w - 60, y + 45), cv2.FONT_HERSHEY_COMPLEX, 0.5, (0, 255, 0), 1)
+            cv2.putText(frame, "Area: " + str(int(area2)), (x + w - 60, y + 45), cv2.FONT_HERSHEY_COMPLEX, 0.5, (0, 255, 0), 1)
 
         for contour in contours:
             epsilon = 0.03 * cv2.arcLength(contour, True)
@@ -167,7 +179,7 @@ def video_feed(request, pk):
         # cv2.drawContours(frame_copy,contours2,-1,(255,0,0),10)
         # combined_frame = np.hstack((frame,frame_copy))
         
-        threshold_distance = 15
+        threshold_distance = 10
     # Adjust this value according to your requirement
 
         # Check if the frame is not empty
@@ -185,18 +197,17 @@ def video_feed(request, pk):
                     gameStarted=True
                     count += 1
                     print('count',count)
-                    time.sleep(1)  # Delay for 1 second
+                    # time.sleep(1)  # Delay for 1 second
 
-            # if gameStarted :
+                skip_until=current_time + 1   
 
-            #     area=0
-            #     approxed=0
-            #     detection(area,approxed,gameStarted)
-            #     if 40000 > area > 30000 and len(approxed)==3: 
-
-            #         print('*******game end*******')
-            #         gameStarted=False
-
+            if gameStarted and current_time > skip_until:
+                    print(area,'-----------------------')
+                    if 13000 > area > 10000 and len(approxed)==3:
+                        cv2.putText(frame, "end", (50, 100), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)                
+                        print('*******game end*******')
+                        gameStarted = False
+                        print('boolean:', gameStarted)
 
                     
             # if masks_overlap(red_mask, mask):
