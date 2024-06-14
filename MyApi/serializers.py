@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import *
+from .models import Person ,Table
 
 
 class PersonaldataSerializer(serializers.ModelSerializer):
@@ -11,7 +11,8 @@ class PersonaldataSerializer(serializers.ModelSerializer):
 
 
 class TableSerializer(serializers.ModelSerializer):
-    person = PersonaldataSerializer(read_only=True)
+    persondetail = PersonaldataSerializer(read_only=True)
+   
     class Meta:
         model=Table
         fields='__all__'

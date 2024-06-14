@@ -32,32 +32,44 @@ def registerUser(request):
     
 @api_view(['POST'])
 def registerTable(request):
-     data=request.data
+    data=request.data
     
-     try:
-          person_detail= Person.objects.get(
-               
-                Name=data['Name'],
-                Address=data['Address'],
-                Phonenumber=data['Phonenumber'],
-                email=data['email'],
-          )
-     except IntegrityError:
+    try:
+        person_detail= Person.objects.get(
+            
+            Name=data['Name'],
+            Address=data['Address'],
+            Phonenumber=data['Phonenumber'],
+            email=data['email'],
+        )
+    except Person.DoesNotExist:
+    
+    
+        person_detail = Person.objects.create(
+            Name=data['Name'],
+            Address=data['Address'],
+            Phonenumber=data['Phonenumber'],
+            email=data['email'],
+        )
+    except IntegrityError:
         message={'detail':'User with this email already exists'}
         return Response(message,status=status.HTTP_400_BAD_REQUEST)
-     try:
-          table_detail= Table.object.create(
-               table_type=data['table_type'],
-               person_detail=person_detail,
-               frame=data['frame'],
-               frame_time_limit=data['frame_time_limit']
+    
+    try:
+        table_detail= Table.objects.create(
+        table_type=data['table_type'],
+        persondetail=person_detail,
+        frame=data['frame'],
+        frame_time_limit=data['frame_time_limit']
 
 
-          )
-          serializers=TableSerializer(table_detail,many=False)
-     except IntegrityError:
-        message={'detail':'table cannot be booked'}
-        return Response(message,status=status.HTTP_400_BAD_REQUEST)
+        )
+        serializers=TableSerializer(table_detail,many=False)
+        return Response(serializers.data, status=status.HTTP_201_CREATED)
+
+    except IntegrityError:
+        return Response({'detail': 'Table cannot be booked'}, status=status.HTTP_400_BAD_REQUEST)
+
 
 
 
