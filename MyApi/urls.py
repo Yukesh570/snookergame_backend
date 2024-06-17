@@ -1,4 +1,4 @@
-from django.urls import path,include
+from django.urls import path
 from . import views , python
 from rest_framework.routers import DefaultRouter
 
@@ -15,6 +15,7 @@ urlpatterns = [
     path('start_timer/<str:pk>/', views.start_timer, name='start_timer'),
     path('stop_timer/<str:pk>/', views.stop_timer, name='stop_timer'),
     path('video_stream/<int:pk>/', python.video_stream, name='video_stream'),
+    path('botton/<int:pk>/', python.botton, name='botton'),
 
 ]
    

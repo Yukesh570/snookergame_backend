@@ -134,6 +134,7 @@ def stop_timer(request,pk):
         table.end_time= now()
         table.price=(table.rate * table.time)/Decimal(60)
         table.save()
+        print('working')
         return JsonResponse({'status': 'Timer stopped', 'elapsed_time': elapsed_time})
 
     

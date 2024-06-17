@@ -1,18 +1,24 @@
 import cv2
 import numpy as np
 from django.http import StreamingHttpResponse
-from .views import start_timer
+from .views import start_timer, stop_timer
 import time
+from django.http import JsonResponse
+
+from .models import *
+from django.shortcuts import render ,get_object_or_404
+
 # Define the lower and upper bounds for red color in HSV space
 
 
-lower_red1 = np.array([160, 40, 145])
-upper_red1 = np.array([180, 255, 255])
-lower_red2 = np.array([160, 40, 145])
-upper_red2 = np.array([180, 255, 255])
 
 
 def detectRedObjects(frame):
+    lower_red1 = np.array([160, 40, 145])
+    upper_red1 = np.array([180, 255, 255])
+    lower_red2 = np.array([160, 40, 145])
+    upper_red2 = np.array([180, 255, 255])
+
     hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
     mask1 = cv2.inRange(hsv, lower_red1, upper_red1)
     mask2 = cv2.inRange(hsv, lower_red2, upper_red2)
@@ -207,6 +213,7 @@ def video_feed(request, pk):
                         cv2.putText(frame, "end", (50, 100), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)                
                         print('*******game end*******')
                         gameStarted = False
+                        stop_timer(request,pk)
                         print('boolean:', gameStarted)
 
                     
@@ -242,6 +249,27 @@ def video_feed(request, pk):
 
 # def index(request,pk):
 #     return render(request, 'index.html',{'pk':pk})
+
+def botton(request,pk):
+    table = get_object_or_404(Table, id=pk)  # Replace with the correct logic to identify the Table instance
+    if table.button==False:
+
+        table.button=True
+    else:
+        table.button=False
+    table.save()
+    if table.button==True:
+        start_timer(request,pk)
+
+    else:
+        stop_timer(request,pk)
+
+
+
+    return JsonResponse({'botton': table.button})
+
+
+
 
 
 def video_stream(request,pk):
