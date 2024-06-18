@@ -16,15 +16,8 @@ class Person(models.Model):
 
 
 class Table(models.Model):
-    TYPE_CHOICES = (
-        ('1', '1'),
-        ('2', '2'),
-        ('3', '3'),
-        ('4', '4'),
-        ('5', '5'),
-        ('6', '6')
-    )
-    table_type= models.CharField(max_length=100, null=True, choices=TYPE_CHOICES)
+
+    table_type= models.CharField(max_length=100, null=True)
     persondetail=models.ForeignKey(Person,null=True, on_delete=models.SET_NULL)
     rate=models.DecimalField(max_digits=7,decimal_places=2,default=0)
     price=models.DecimalField(max_digits=7,decimal_places=2,null=True , blank=True) 
