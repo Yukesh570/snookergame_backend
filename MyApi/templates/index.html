@@ -6,19 +6,16 @@
 </head>
 <body>
     <h1>Snooker Video Stream</h1>
-    <!-- <img id="video" width="500" height="500" src="{% url 'video_stream' pk=1 %}"> -->
     <img id="video" width="500" height="500">
 
     <script>
-        console.log('pk',pk)
-        // Get the primary key value from the server-side or any other source
-        var pk ; // Assuming pk is 1 for demonstration purposes
-        
-        // Construct the URL with the primary key value
-        var url = "/video_stream/" + pk + "/"; // Assuming the URL structure
-        console.log('pk',pk)
+        // Assume pk is obtained from the server-side or another source
+        var pk = 1; // For demonstration, assuming pk is 1
 
-        // Set the src attribute of the img tag with the constructed URL
+        // Construct the URL based on the pk
+        var url = "/api/video_stream/" + pk + "/"; // Adjust the URL structure as per your actual API
+
+        // Set the src attribute of the img tag
         document.getElementById("video").src = url;
     </script>
 </body>

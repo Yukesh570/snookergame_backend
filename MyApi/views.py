@@ -33,22 +33,21 @@ def registerUser(request):
 @api_view(['POST'])
 def registerTable(request):
     data=request.data
-    
     try:
         person_detail= Person.objects.get(
             
-            Name=data['Name'],
-            Address=data['Address'],
-            Phonenumber=data['Phonenumber'],
+            Name=data['name'],
+            Address=data['address'],
+            Phonenumber=data['phonenumber'],
             email=data['email'],
         )
     except Person.DoesNotExist:
     
     
         person_detail = Person.objects.create(
-            Name=data['Name'],
-            Address=data['Address'],
-            Phonenumber=data['Phonenumber'],
+            Name=data['name'],
+            Address=data['address'],
+            Phonenumber=data['phonenumber'],
             email=data['email'],
         )
     except IntegrityError:
@@ -96,7 +95,6 @@ def index(request):
 
 
 
-
 def start_timer(request,pk):
     request.session['start_time'] = time.time()
     table =get_object_or_404(Table,pk=pk)
@@ -124,7 +122,6 @@ def start_timer(request,pk):
 #     else:
 #         return JsonResponse({'status': 'No timer started'})
     
-        
 def stop_timer(request,pk):
         table = get_object_or_404(Table, id=pk)  # Replace with the correct logic to identify the Table instance
         current_time = time.time()  # Get current time in seconds since the epoch

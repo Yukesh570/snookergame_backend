@@ -4,6 +4,7 @@ from django.http import StreamingHttpResponse
 from .views import start_timer, stop_timer
 import time
 from django.http import JsonResponse
+from rest_framework.decorators import api_view
 
 from .models import *
 from django.shortcuts import render ,get_object_or_404
@@ -247,8 +248,8 @@ def video_feed(request, pk):
     
 
 
-# def index(request,pk):
-#     return render(request, 'index.html',{'pk':pk})
+def index(request,pk):
+    return render(request, 'index.html',{'pk':pk})
 
 def botton(request,pk):
     table = get_object_or_404(Table, id=pk)  # Replace with the correct logic to identify the Table instance
@@ -267,7 +268,6 @@ def botton(request,pk):
 
 
     return JsonResponse({'botton': table.button})
-
 
 
 
