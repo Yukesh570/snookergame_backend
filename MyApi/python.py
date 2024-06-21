@@ -223,11 +223,11 @@ def video_feed(request, pk):
             # else:
             #     print("Game Over")
                 # cv2.putText(frame, "PLAY", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
-            
-            ret, jpeg = cv2.imencode('.jpg', frame)
-            frame = jpeg.tobytes()
-            yield (b'--frame\r\n'
-                b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
+            if request.path == f'/api/video_stream/{pk}/':
+                ret, jpeg = cv2.imencode('.jpg', frame)
+                frame = jpeg.tobytes()
+                yield (b'--frame\r\n'
+                    b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
         
          
             # cv2.imshow('blur', imgGray)
@@ -273,4 +273,6 @@ def botton(request,pk):
 
 
 def video_stream(request,pk):
-    return StreamingHttpResponse(video_feed(request, pk),content_type='multipart/x-mixed-replace; boundary=frame')
+        return StreamingHttpResponse(video_feed(request, pk),content_type='multipart/x-mixed-replace; boundary=frame')
+    
+

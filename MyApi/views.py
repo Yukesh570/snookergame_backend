@@ -1,5 +1,7 @@
 from django.shortcuts import render ,get_object_or_404
 from .models import *
+from django.core.mail import send_mail 
+from django.conf import settings
 from .serializers import *
 from django.utils.timezone import now
 from rest_framework.decorators import api_view
@@ -10,6 +12,19 @@ from django.http import JsonResponse
 import time
 from decimal import Decimal
 
+
+
+def index(request):
+    if request.method=='POST':
+        email=request.POST['email']
+        send_mail('SnookerGame',
+                  'You just requested to play the game',
+                  'settings.EMAIL_HOST_USER',
+                  [email],
+                  fail_silently=False,
+                  )
+        
+    return render(request,'index.html')
 
 
 @api_view(['POST'])
@@ -26,7 +41,7 @@ def registerUser(request):
         serializer=PersonaldataSerializer(user,many=False)
         return Response(serializer.data)
     
-    except IntegrityError:
+    except:
         message={'detail':'User with this email already exists'}
         return Response(message,status=status.HTTP_400_BAD_REQUEST)
     
@@ -43,13 +58,19 @@ def registerTable(request):
         )
     except Person.DoesNotExist:
     
-    
+   
         person_detail = Person.objects.create(
             Name=data['name'],
             Address=data['address'],
             Phonenumber=data['phonenumber'],
             email=data['email'],
         )
+        # send_mail('SnookerGame',
+        #           'You just requested to play the game',
+        #           'settings.EMAIL_HOST_USER',
+        #           [data['email']],
+        #           fail_silently=False,
+        #           )
     except IntegrityError:
         message={'detail':'User with this email already exists'}
         return Response(message,status=status.HTTP_400_BAD_REQUEST)
@@ -58,15 +79,18 @@ def registerTable(request):
         table_detail= Table.objects.create(
         table_type=data['table_type'],
         persondetail=person_detail,
+        price=data['price'],
+        rate=data['rate'],
         frame=data['frame'],
-        frame_time_limit=data['frame_time_limit']
-
-
+        frame_time_limit=data['frame_time_limit'],
+        # ac=data['ac'],
         )
         serializers=TableSerializer(table_detail,many=False)
+       
         return Response(serializers.data, status=status.HTTP_201_CREATED)
+  
+    except  Exception as e : 
 
-    except IntegrityError:
         return Response({'detail': 'Table cannot be booked'}, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -89,8 +113,8 @@ def getalltable(request):
 
 
 
-def index(request):
-    return render(request,'index.html')
+# def index(request):
+#     return render(request,'index.html')
 
 
 
@@ -135,4 +159,3 @@ def stop_timer(request,pk):
         return JsonResponse({'status': 'Timer stopped', 'elapsed_time': elapsed_time})
 
     
-        

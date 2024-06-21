@@ -23,7 +23,7 @@ class Table(models.Model):
     price=models.DecimalField(max_digits=7,decimal_places=2,null=True , blank=True) 
     start_time = models.DateTimeField(null=True, blank=True)
     is_running = models.BooleanField(default=False)
-    time=models.DecimalField(max_digits=7,decimal_places=2,null=True , blank=True)
+    # time=models.DecimalField(max_digits=7,decimal_places=2,null=True , blank=True)
     end_time = models.DateTimeField(null=True, blank=True)
     frame=models.IntegerField(null=True , blank=True)
     frame_time_limit=models.TimeField(null=True, blank=True)
