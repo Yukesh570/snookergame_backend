@@ -1,7 +1,6 @@
 from django.db import models
+from datetime import datetime
 from django.utils import timezone
-from datetime import timedelta
-
 
 class Person(models.Model):
     Name = models.CharField(max_length=20, null=True)
@@ -12,9 +11,9 @@ class Person(models.Model):
     tabletype=models.ForeignKey('Table',null=True, on_delete=models.SET_NULL)
     def __str__(self):
         return self.email
-    
 
-
+def get_current_time():
+    return datetime.now().time()
 class Table(models.Model):
 
     table_type= models.CharField(max_length=100, unique=True ,null=True)
@@ -26,10 +25,11 @@ class Table(models.Model):
     # time=models.DecimalField(max_digits=7,decimal_places=2,null=True , blank=True)
     end_time = models.DateTimeField(null=True, blank=True)
     frame=models.IntegerField(null=True , blank=True)
-    frame_time_limit=models.TimeField(null=True, blank=True)
-    ac=models.BooleanField(default=False,null=True, blank=True)
-    button=models.BooleanField(default=False,null=True, blank=True)
-    inactive=models.BooleanField(default=False,null=True, blank=True)
+    frame_time_limit = models.TimeField(default=get_current_time)
+    ac=models.BooleanField(default=False)
+    button=models.BooleanField(default=False)
+    inactive=models.BooleanField(default=False)
+
 
     def __str__(self):
         return str(self.table_type)

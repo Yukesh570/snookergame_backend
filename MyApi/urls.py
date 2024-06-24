@@ -7,6 +7,7 @@ from rest_framework.routers import DefaultRouter
 urlpatterns = [
     path('userregister/', views.registerUser, name='registerUser'),
     path('registerTable/', views.registerTable, name='registerTable '),
+    path('updatetable/<str:pk>/', views.updatetable, name='updatetable'),
 
     path('gettable/<str:pk>/', views.gettable, name='gettable'),
     path('getalltable/', views.getalltable, name='getalltable'),

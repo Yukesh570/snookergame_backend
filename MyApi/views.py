@@ -94,6 +94,19 @@ def registerTable(request):
         return Response({'detail': 'Table cannot be booked'}, status=status.HTTP_400_BAD_REQUEST)
 
 
+@api_view(['PUT'])
+def updatetable(request,pk):
+    data=request.data
+    instance= Table.objects.get(pk=pk)
+    serializers=TableSerializer(instance,data=data)
+    if serializers.is_valid():
+        serializers.save()
+        return Response(serializers.data)
+    return Response(serializers.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    
+
+
 
 
 
