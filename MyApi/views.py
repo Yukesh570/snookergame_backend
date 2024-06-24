@@ -12,6 +12,7 @@ from django.http import JsonResponse
 import time
 from decimal import Decimal
 
+from django.core.validators import validate_email
 
 
 def index(request):
@@ -65,15 +66,14 @@ def registerTable(request):
             Phonenumber=data['phonenumber'],
             email=data['email'],
         )
-        # send_mail('SnookerGame',
-        #           'You just requested to play the game',
-        #           'settings.EMAIL_HOST_USER',
-        #           [data['email']],
-        #           fail_silently=False,
-        #           )
-    except IntegrityError:
-        message={'detail':'User with this email already exists'}
-        return Response(message,status=status.HTTP_400_BAD_REQUEST)
+        send_mail('SnookerGame',
+                  'You just requested to play the game',
+                  'settings.EMAIL_HOST_USER',
+                  [data['email']],
+                  fail_silently=False,
+                  )
+    except :
+        return Response({'detail':'Email do not exist'},status=status.HTTP_400_BAD_REQUEST)
     
     try:
         table_detail= Table.objects.create(
@@ -83,13 +83,13 @@ def registerTable(request):
         rate=data['rate'],
         frame=data['frame'],
         frame_time_limit=data['frame_time_limit'],
-        # ac=data['ac'],
+        ac=data['ac'],
         )
         serializers=TableSerializer(table_detail,many=False)
        
         return Response(serializers.data, status=status.HTTP_201_CREATED)
   
-    except  Exception as e : 
+    except : 
 
         return Response({'detail': 'Table cannot be booked'}, status=status.HTTP_400_BAD_REQUEST)
 
