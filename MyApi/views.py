@@ -109,20 +109,26 @@ def updatetable(request,pk):
     data=request.data
     try:
         table_instance = Table.objects.get(pk=pk)
+        person_detail = table_instance.persondetail
+
+        person_detail, created = Person.objects.get_or_create(table=table_instance)
+
+        person_detail.Name = data.get('name', person_detail.Name)
+        person_detail.Address = data.get('address', person_detail.Address)
+        person_detail.Phonenumber = data.get('phonenumber', person_detail.Phonenumber)
+        person_detail.email = data.get('email', person_detail.email)
+
+        person_detail.save()
         table_instance.table_type = data.get('table_type', table_instance.table_type)
         table_instance.price = data.get('price', table_instance.price)
         table_instance.rate = data.get('rate', table_instance.rate)
         table_instance.frame = data.get('frame', table_instance.frame)
         table_instance.frame_time_limit = data.get('frame_time_limit', table_instance.frame_time_limit)
         table_instance.ac = data.get('ac', table_instance.ac)
-        
+        table_instance.is_running = data.get('is_running', table_instance.is_running)
+
         # Update associated Person fields (assuming Person details are also in request data)
-        person_detail = table_instance.persondetail
-        person_detail.Name = data.get('name', person_detail.Name)
-        person_detail.Address = data.get('address', person_detail.Address)
-        person_detail.Phonenumber = data.get('phonenumber', person_detail.Phonenumber)
-        person_detail.email = data.get('email', person_detail.email)
-        person_detail.save()
+       
         
         # Save the updated Table instance
         table_instance.save()
