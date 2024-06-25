@@ -94,19 +94,56 @@ def registerTable(request):
         return Response({'detail': 'Table cannot be booked'}, status=status.HTTP_400_BAD_REQUEST)
 
 
+# @api_view(['PUT'])
+# def updatetable(request,pk):
+#     data=request.data
+#     instance= Table.objects.get(pk=pk)
+#     serializers=TableSerializer(instance,data=data)
+#     if serializers.is_valid():
+#         serializers.save()
+#         return Response(serializers.data)
+#     return Response(serializers.errors, status=status.HTTP_400_BAD_REQUEST)
+
 @api_view(['PUT'])
 def updatetable(request,pk):
     data=request.data
-    instance= Table.objects.get(pk=pk)
-    serializers=TableSerializer(instance,data=data)
-    if serializers.is_valid():
-        serializers.save()
-        return Response(serializers.data)
-    return Response(serializers.errors, status=status.HTTP_400_BAD_REQUEST)
+    try:
+        table_instance = Table.objects.get(pk=pk)
+        table_instance.table_type = data.get('table_type', table_instance.table_type)
+        table_instance.price = data.get('price', table_instance.price)
+        table_instance.rate = data.get('rate', table_instance.rate)
+        table_instance.frame = data.get('frame', table_instance.frame)
+        table_instance.frame_time_limit = data.get('frame_time_limit', table_instance.frame_time_limit)
+        table_instance.ac = data.get('ac', table_instance.ac)
+        
+        # Update associated Person fields (assuming Person details are also in request data)
+        person_detail = table_instance.persondetail
+        person_detail.Name = data.get('name', person_detail.Name)
+        person_detail.Address = data.get('address', person_detail.Address)
+        person_detail.Phonenumber = data.get('phonenumber', person_detail.Phonenumber)
+        person_detail.email = data.get('email', person_detail.email)
+        person_detail.save()
+        
+        # Save the updated Table instance
+        table_instance.save()
+        send_mail('SnookerGame',
+                'You just requested to play the game',
+                'settings.EMAIL_HOST_USER',
+                [data['email']],
+                fail_silently=False,
+                )
+        # Serialize the updated instance and return the response
+        serializer = TableSerializer(table_instance, many=False)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    except Table.DoesNotExist:
+        return Response({'detail': 'Table not found'}, status=status.HTTP_404_NOT_FOUND)
+    except Person.DoesNotExist:
+        return Response({'detail': 'Associated Person not found'}, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
     
-
-
 
 
 
