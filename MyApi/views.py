@@ -38,10 +38,12 @@ def registerUser(request):
             Address=data['address'],
             Phonenumber=data['phonenumber'],
             email=data['email'],
-            tabletype_id=data['tabletype'],
             frame=data['frame'],
 
         )
+        print(data['tableno'])
+        print(Table.objects.filter(tableno=int(data['tableno'])))
+        Table.objects.filter(tableno=int(data['tableno'])).update(person=user)
         serializer=PersonaldataSerializer(user,many=False)
         return Response(serializer.data)
     
@@ -82,13 +84,13 @@ def registerTable(request):
     
     try:
         table_detail= Table.objects.create(
-        table_type=data['table_type'],
+        tableno=data['tableno'],
             # persondetail=person_detail,
         price=data['price'],
         rate=data['rate'],
         frame_time_limit=data['frame_time_limit'],
         ac=data['ac'],
-        is_running=data['is_running'],
+     
 
         )
         serializers=TableSerializer(table_detail,many=False)
@@ -101,63 +103,84 @@ def registerTable(request):
 
     
 
-@api_view(['POST'])
-def userRegister(request):
-    data=request.data
-    try:
-        person_detail= Person.objects.get(
+# @api_view(['POST'])
+# def userRegister(request):
+#     data=request.data
+#     try:
+#         person_detail= Person.objects.get(
             
-            Name=data['name'],
-            Address=data['address'],
-            Phonenumber=data['phonenumber'],
-            email=data['email'],
-        )
-    except Person.DoesNotExist:
+#             Name=data['name'],
+#             Address=data['address'],
+#             Phonenumber=data['phonenumber'],
+#             email=data['email'],
+#         )
+#     except Person.DoesNotExist:
     
    
-        person_detail = Person.objects.create(
-            Name=data['name'],
-            Address=data['address'],
-            Phonenumber=data['phonenumber'],
-            email=data['email'],
-        )
-        send_mail('SnookerGame',
-                  'You just requested to play the game',
-                  'settings.EMAIL_HOST_USER',
-                  [data['email']],
-                  fail_silently=False,
-                  )
-    except :
-        return Response({'detail':'Email do not exist'},status=status.HTTP_400_BAD_REQUEST)
+#         person_detail = Person.objects.create(
+#             Name=data['name'],
+#             Address=data['address'],
+#             Phonenumber=data['phonenumber'],
+#             email=data['email'],
+#         )
+#         send_mail('SnookerGame',
+#                   'You just requested to play the game',
+#                   'settings.EMAIL_HOST_USER',
+#                   [data['email']],
+#                   fail_silently=False,
+#                   )
+#     except :
+#         return Response({'detail':'Email do not exist'},status=status.HTTP_400_BAD_REQUEST)
     
-    try:
-        table_detail= Table.objects.create(
-        # table_type=data['table_type'],
-        persondetail=person_detail,
-        # price=data['price'],
-        # rate=data['rate'],
-        # frame=data['frame'],
+#     try:
+#         table_detail= Table.objects.create(
+#         # table_type=data['table_type'],
+#         persondetail=person_detail,
+#         # price=data['price'],
+#         # rate=data['rate'],
+#         # frame=data['frame'],
 
 
-        # frame_time_limit=data['frame_time_limit'],
-        # ac=data['ac'],
-        )
-        serializers=TableSerializer(table_detail,many=False)
+#         # frame_time_limit=data['frame_time_limit'],
+#         # ac=data['ac'],
+#         )
+#         serializers=TableSerializer(table_detail,many=False)
        
-        return Response(serializers.data, status=status.HTTP_201_CREATED)
+#         return Response(serializers.data, status=status.HTTP_201_CREATED)
   
-    except : 
+#     except : 
 
-        return Response({'detail': 'Table cannot be booked'}, status=status.HTTP_400_BAD_REQUEST)
+#         return Response({'detail': 'Table cannot be booked'}, status=status.HTTP_400_BAD_REQUEST)
+    
 @api_view(['PUT'])
 def updatetable(request,pk):
     data=request.data
-    instance= Table.objects.get(pk=pk)
-    serializers=TableSerializer(instance,data=data)
-    if serializers.is_valid():
-        serializers.save()
-        return Response(serializers.data)
-    return Response(serializers.errors, status=status.HTTP_400_BAD_REQUEST)
+    try:
+        table_instance = Table.objects.get(tableno=pk)
+        table_instance.is_running = data.get('is_running', table_instance.is_running)
+        table_instance.save()
+        serializer = TableSerializer(table_instance, many=False)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    except Table.DoesNotExist:
+        return Response({'detail': 'Table not found'}, status=status.HTTP_404_NOT_FOUND)
+    except Person.DoesNotExist:
+        return Response({'detail': 'Associated Person not found'}, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    
+
+
+# @api_view(['PUT'])
+# def updatetable(request,pk):
+#     data=request.data
+#     instance= Table.objects.get(pk=pk)
+#     serializers=TableSerializer(instance,data=data)
+#     if serializers.is_valid():
+#         serializers.save()
+#         return Response(serializers.data)
+#     return Response(serializers.errors, status=status.HTTP_400_BAD_REQUEST)
 
 # @api_view(['PUT'])
 # def updatetable(request,pk):
@@ -203,30 +226,11 @@ def updatetable(request,pk):
 #         return Response({'detail': 'Associated Person not found'}, status=status.HTTP_404_NOT_FOUND)
 #     except Exception as e:
 #         return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
-@api_view(['PUT'])
-def updatetable(request,pk):
-    data=request.data
-    try:
-        table_instance = Table.objects.get(pk=pk)
-        table_instance.is_running = data.get('is_running', table_instance.is_running)
-        table_instance.save()
-        serializer = TableSerializer(table_instance, many=False)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-    
-    except Table.DoesNotExist:
-        return Response({'detail': 'Table not found'}, status=status.HTTP_404_NOT_FOUND)
-    except Person.DoesNotExist:
-        return Response({'detail': 'Associated Person not found'}, status=status.HTTP_404_NOT_FOUND)
-    except Exception as e:
-        return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
-
-    
-
 
 
 @api_view(['GET'])
 def gettable(request,pk):
-    table=Table.objects.get(id=pk)
+    table=Table.objects.get(tableno=pk)
     serializers=TableSerializer(table,many=False)
     return Response(serializers.data)
 
@@ -248,7 +252,7 @@ def getalltable(request):
 
 def start_timer(request,pk):
     request.session['start_time'] = time.time()
-    table =get_object_or_404(Table,pk=pk)
+    table =get_object_or_404(Table,tableno=pk)
     table.start_time= timezone.now()
     table.time = 0
     table.is_running =True
@@ -274,7 +278,7 @@ def start_timer(request,pk):
 #         return JsonResponse({'status': 'No timer started'})
     
 def stop_timer(request,pk):
-        table = get_object_or_404(Table, id=pk)  # Replace with the correct logic to identify the Table instance
+        table = get_object_or_404(Table, tableno=pk)  # Replace with the correct logic to identify the Table instance
         current_time = time.time()  # Get current time in seconds since the epoch
         elapsed_time = current_time - table.start_time.timestamp() 
         table.is_running = False

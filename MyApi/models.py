@@ -6,10 +6,12 @@ class Person(models.Model):
     Name = models.CharField(max_length=20, null=True,blank=True)
     Address = models.CharField(max_length=200, null=True,blank=True)
     Phonenumber = models.IntegerField(null=True , blank=True)
-    email = models.EmailField(max_length=200, unique=True, null=True,blank=True)
+    email = models.EmailField(max_length=200, null=True,blank=True)
     # tabletype=models.CharField(max_length=100, null=True, blank=True)
-    tabletype=models.ForeignKey('Table',null=True, blank=True, on_delete=models.SET_NULL)
+    # tabletype=models.ForeignKey('Table',null=True, blank=True, on_delete=models.SET_NULL)
     frame=models.IntegerField(null=True , blank=True)
+    totalPrice=models.DecimalField(max_digits=7,decimal_places=2,null=True , blank=True) 
+    frameplayed=models.IntegerField(null=True , blank=True)
     def __str__(self):
         return str(self.email)
 
@@ -17,8 +19,8 @@ def get_current_time():
     return datetime.now().time()
 class Table(models.Model):
 
-    table_type= models.CharField(max_length=100, unique=True ,null=True)
-    persondetail=models.ForeignKey(Person,null=True,  blank=True,on_delete=models.SET_NULL)
+    tableno= models.CharField( max_length=100,null=True , blank=True)
+    person=models.ForeignKey(Person,null=True,  blank=True,on_delete=models.SET_NULL,related_name='table')
     rate=models.DecimalField(max_digits=7,decimal_places=2,default=0)
     price=models.DecimalField(max_digits=7,decimal_places=2,null=True , blank=True) 
     start_time = models.DateTimeField(null=True, blank=True)
@@ -32,6 +34,7 @@ class Table(models.Model):
 
 
     def __str__(self):
-        return str(self.table_type)
+        return str(self.tableno)
 
     
+
