@@ -251,11 +251,13 @@ def getalltable(request):
 
 
 def start_timer(request,pk):
-    request.session['start_time'] = time.time()
     table =get_object_or_404(Table,tableno=pk)
+    if table.start_time is not None:
+     return JsonResponse({'status': 'Timer already started'})
+    request.session['start_time'] = time.time()
     table.start_time= timezone.now()
     table.time = 0
-    table.is_running =True
+    # table.is_running =True
     table.save()
     print('=====================================================stared',table.start_time)
     return JsonResponse({'status': 'Timer started'})
@@ -282,9 +284,9 @@ def stop_timer(request,pk):
         current_time = time.time()  # Get current time in seconds since the epoch
         elapsed_time = current_time - table.start_time.timestamp() 
         table.is_running = False
-        table.time = Decimal(elapsed_time)
+        table.played_time = Decimal(elapsed_time)
         table.end_time= now()
-        table.price=(table.rate * table.time)/Decimal(60)
+        table.price=(table.rate * table.played_time)/Decimal(60)
         table.save()
         print('working')
         return JsonResponse({'status': 'Timer stopped', 'elapsed_time': elapsed_time})
