@@ -158,6 +158,7 @@ def updatetable(request,pk):
     try:
         table_instance = Table.objects.get(tableno=pk)
         table_instance.is_running = data.get('is_running', table_instance.is_running)
+
         table_instance.save()
         serializer = TableSerializer(table_instance, many=False)
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -170,6 +171,24 @@ def updatetable(request,pk):
         return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
     
+@api_view(['PUT'])
+def chooseGame(request,pk):
+    data=request.data
+    try:
+        table_instance = Table.objects.get(tableno=pk)
+        table_instance.frame_based = data.get('frame_based', table_instance.frame_based)
+        table_instance.time_based = data.get('time_based', table_instance.time_based)
+
+        table_instance.save()
+        serializer = TableSerializer(table_instance, many=False)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    except Table.DoesNotExist:
+        return Response({'detail': 'Table not found'}, status=status.HTTP_404_NOT_FOUND)
+    except Person.DoesNotExist:
+        return Response({'detail': 'Associated Person not found'}, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
 # @api_view(['PUT'])
@@ -283,10 +302,14 @@ def stop_timer(request,pk):
         table = get_object_or_404(Table, tableno=pk)  # Replace with the correct logic to identify the Table instance
         current_time = time.time()  # Get current time in seconds since the epoch
         elapsed_time = current_time - table.start_time.timestamp() 
-        table.is_running = False
-        table.played_time = Decimal(elapsed_time)
+        # table.is_running = False
+        table.elapsed_time = Decimal(elapsed_time)
         table.end_time= now()
-        table.price=(table.rate * table.played_time)/Decimal(60)
+        table.price=(table.rate * table.elapsed_time)/Decimal(60)
+        total_seconds = int(table.elapsed_time)
+        hours, remainder = divmod(total_seconds, 3600)
+        minutes, seconds = divmod(remainder, 60)
+        table.played_time = f"{hours:02}:{minutes:02}:{seconds:02}"
         table.save()
         print('working')
         return JsonResponse({'status': 'Timer stopped', 'elapsed_time': elapsed_time})

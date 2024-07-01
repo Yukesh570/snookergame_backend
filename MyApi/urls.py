@@ -9,6 +9,7 @@ urlpatterns = [
     path('registerTable/', views.registerTable, name='registerTable '),
 
     path('updatetable/<str:pk>/', views.updatetable, name='updatetable'),
+    path('chooseGame/<str:pk>/', views.chooseGame, name='chooseGame'),
 
     path('gettable/<str:pk>/', views.gettable, name='gettable'),
     path('getalltable/', views.getalltable, name='getalltable'),
