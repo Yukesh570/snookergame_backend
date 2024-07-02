@@ -11,21 +11,52 @@ from django.db import IntegrityError
 from django.http import JsonResponse
 import time
 from decimal import Decimal
+import datetime
+from django.http import StreamingHttpResponse
+import cv2
 
 from django.core.validators import validate_email
 
+def parse_duration(duration_str):
+    try:
+        parts = duration_str.split(':')
+        if len(parts) == 3:
+            hours, minutes, seconds = map(int, parts)
+            return datetime.timedelta(hours=hours, minutes=minutes, seconds=seconds)
+        return None
+    except:
+        return None
+    
+def gen(camera):
+    while True:
+        ret, frame = camera.read()
+        if not ret:
+            break
+        _, jpeg = cv2.imencode('.jpg', frame)
+        frame = jpeg.tobytes()
+        yield (b'--frame\r\n'
+               b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
+
+def video_feed(request):
+    return StreamingHttpResponse(gen(cv2.VideoCapture(0)),
+                                 content_type='multipart/x-mixed-replace; boundary=frame')
 
 def index(request):
-    if request.method=='POST':
-        email=request.POST['email']
-        send_mail('SnookerGame',
-                  'You just requested to play the game',
-                  'settings.EMAIL_HOST_USER',
-                  [email],
-                  fail_silently=False,
-                  )
+    return render(request, 'index.html')
+
+
+    
+# def index(request):
+#     if request.method=='POST':
+#         email=request.POST['email']
+#         send_mail('SnookerGame',
+#                   'You just requested to play the game',
+#                   'settings.EMAIL_HOST_USER',
+#                   [email],
+#                   fail_silently=False,
+#                   )
         
-    return render(request,'index.html')
+#     return render(request,'index.html')
 
 
 @api_view(['POST'])
@@ -39,7 +70,7 @@ def registerUser(request):
             Phonenumber=data['phonenumber'],
             email=data['email'],
             frame=data['frame'],
-
+            played_table=data['tableno'],
         )
         print(data['tableno'])
         print(Table.objects.filter(tableno=int(data['tableno'])))
@@ -83,12 +114,15 @@ def registerTable(request):
     #     return Response({'detail':'Email do not exist'},status=status.HTTP_400_BAD_REQUEST)
     
     try:
+        frame_limit_duration = parse_duration(data['frame_limit'])
+
         table_detail= Table.objects.create(
         tableno=data['tableno'],
             # persondetail=person_detail,
-        price=data['price'],
+        per_frame=data['per_frame'],
         rate=data['rate'],
-        frame_time_limit=data['frame_time_limit'],
+        # frame_time_limit=data['frame_time_limit'],
+        frame_limit=frame_limit_duration,
         ac=data['ac'],
      
 
@@ -101,57 +135,6 @@ def registerTable(request):
 
         return Response({'detail': 'Table cannot be booked'}, status=status.HTTP_400_BAD_REQUEST)
 
-    
-
-# @api_view(['POST'])
-# def userRegister(request):
-#     data=request.data
-#     try:
-#         person_detail= Person.objects.get(
-            
-#             Name=data['name'],
-#             Address=data['address'],
-#             Phonenumber=data['phonenumber'],
-#             email=data['email'],
-#         )
-#     except Person.DoesNotExist:
-    
-   
-#         person_detail = Person.objects.create(
-#             Name=data['name'],
-#             Address=data['address'],
-#             Phonenumber=data['phonenumber'],
-#             email=data['email'],
-#         )
-#         send_mail('SnookerGame',
-#                   'You just requested to play the game',
-#                   'settings.EMAIL_HOST_USER',
-#                   [data['email']],
-#                   fail_silently=False,
-#                   )
-#     except :
-#         return Response({'detail':'Email do not exist'},status=status.HTTP_400_BAD_REQUEST)
-    
-#     try:
-#         table_detail= Table.objects.create(
-#         # table_type=data['table_type'],
-#         persondetail=person_detail,
-#         # price=data['price'],
-#         # rate=data['rate'],
-#         # frame=data['frame'],
-
-
-#         # frame_time_limit=data['frame_time_limit'],
-#         # ac=data['ac'],
-#         )
-#         serializers=TableSerializer(table_detail,many=False)
-       
-#         return Response(serializers.data, status=status.HTTP_201_CREATED)
-  
-#     except : 
-
-#         return Response({'detail': 'Table cannot be booked'}, status=status.HTTP_400_BAD_REQUEST)
-    
 @api_view(['PUT'])
 def updatetable(request,pk):
     data=request.data
@@ -189,62 +172,6 @@ def chooseGame(request,pk):
         return Response({'detail': 'Associated Person not found'}, status=status.HTTP_404_NOT_FOUND)
     except Exception as e:
         return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
-
-
-# @api_view(['PUT'])
-# def updatetable(request,pk):
-#     data=request.data
-#     instance= Table.objects.get(pk=pk)
-#     serializers=TableSerializer(instance,data=data)
-#     if serializers.is_valid():
-#         serializers.save()
-#         return Response(serializers.data)
-#     return Response(serializers.errors, status=status.HTTP_400_BAD_REQUEST)
-
-# @api_view(['PUT'])
-# def updatetable(request,pk):
-#     data=request.data
-#     try:
-#         table_instance = Table.objects.get(pk=pk)
-#         person_detail = table_instance.persondetail
-
-#         person_detail, created = Person.objects.get_or_create(table=table_instance)
-
-#         person_detail.Name = data.get('name', person_detail.Name)
-#         person_detail.Address = data.get('address', person_detail.Address)
-#         person_detail.Phonenumber = data.get('phonenumber', person_detail.Phonenumber)
-#         person_detail.email = data.get('email', person_detail.email)
-
-#         person_detail.save()
-#         table_instance.table_type = data.get('table_type', table_instance.table_type)
-#         table_instance.price = data.get('price', table_instance.price)
-#         table_instance.rate = data.get('rate', table_instance.rate)
-#         table_instance.frame = data.get('frame', table_instance.frame)
-#         table_instance.frame_time_limit = data.get('frame_time_limit', table_instance.frame_time_limit)
-#         table_instance.ac = data.get('ac', table_instance.ac)
-#         table_instance.is_running = data.get('is_running', table_instance.is_running)
-
-#         # Update associated Person fields (assuming Person details are also in request data)
-       
-        
-#         # Save the updated Table instance
-#         table_instance.save()
-#         send_mail('SnookerGame',
-#                 'You just requested to play the game',
-#                 'settings.EMAIL_HOST_USER',
-#                 [data['email']],
-#                 fail_silently=False,
-#                 )
-#         # Serialize the updated instance and return the response
-#         serializer = TableSerializer(table_instance, many=False)
-#         return Response(serializer.data, status=status.HTTP_200_OK)
-    
-#     except Table.DoesNotExist:
-#         return Response({'detail': 'Table not found'}, status=status.HTTP_404_NOT_FOUND)
-#     except Person.DoesNotExist:
-#         return Response({'detail': 'Associated Person not found'}, status=status.HTTP_404_NOT_FOUND)
-#     except Exception as e:
-#         return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['GET'])

@@ -7,7 +7,7 @@ from .models import *
 
 
 class PersonAdmin(admin.ModelAdmin):
-    list_display = ['email','Name']
+    list_display = ['email','Name','played_table']
 class TableAdmin(admin.ModelAdmin):
     list_display=['tableno','is_running','person']
 admin.site.register(Person,PersonAdmin) 
