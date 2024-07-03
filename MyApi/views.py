@@ -14,6 +14,7 @@ from decimal import Decimal
 import datetime
 from django.http import StreamingHttpResponse
 import cv2
+from datetime import timedelta
 
 from django.core.validators import validate_email
 
@@ -227,18 +228,42 @@ def start_timer(request,pk):
     
 def stop_timer(request,pk):
         table = get_object_or_404(Table, tableno=pk)  # Replace with the correct logic to identify the Table instance
-        current_time = time.time()  # Get current time in seconds since the epoch
-        elapsed_time = current_time - table.start_time.timestamp() 
+        # current_time = time.time()  # Get current time in seconds since the epoch
+        # elapsed_time = current_time - table.start_time.timestamp() 
         # table.is_running = False
-        table.elapsed_time = Decimal(elapsed_time)
+        # table.elapsed_time = Decimal(elapsed_time)
         table.end_time= now()
-        table.price=(table.rate * table.elapsed_time)/Decimal(60)
-        total_seconds = int(table.elapsed_time)
-        hours, remainder = divmod(total_seconds, 3600)
-        minutes, seconds = divmod(remainder, 60)
-        table.played_time = f"{hours:02}:{minutes:02}:{seconds:02}"
+        # table.price=(table.rate * table.elapsed_time)/Decimal(60)
+        # total_seconds = int(table.elapsed_time)
+        # hours, remainder = divmod(total_seconds, 3600)
+        # minutes, seconds = divmod(remainder, 60)
+        # table.played_time = f"{hours:02}:{minutes:02}:{seconds:02}"
         table.save()
         print('working')
-        return JsonResponse({'status': 'Timer stopped', 'elapsed_time': elapsed_time})
+        return JsonResponse({'status': 'Timer stopped' })
+
+
+def Check_timer(request,pk):
+    table=get_object_or_404(Table,tableno=pk)
+    if table.start_time is None:
+        return JsonResponse({'error': 'Start time is not set'}, status=400)
+    current_time = time.time()  # Get current time in seconds since the epoch
+    elapsed_time = current_time - table.start_time.timestamp() 
+    table.elapsed_time = Decimal(elapsed_time) 
+    total_seconds = int(table.elapsed_time)
+    hours, remainder = divmod(total_seconds, 3600)
+    minutes, seconds = divmod(remainder, 60)
+    table.played_time = f"{hours:02}:{minutes:02}:{seconds:02}"
+    played_time_str=table.played_time
+    #convert played_time to timedelta
+    hours,minutes,seconds= map(int,played_time_str.split(':'))
+    played_time_td=timedelta(hours=hours,minutes=minutes,seconds=seconds)
+    if played_time_td == table.frame_limit:
+        print('stop')
+    table.save()
+
+    return JsonResponse({'status': 'Timer '})
 
     
+
+

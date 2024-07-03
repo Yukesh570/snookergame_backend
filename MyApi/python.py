@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 from django.http import StreamingHttpResponse
-from .views import start_timer, stop_timer
+from .views import start_timer, stop_timer,Check_timer
 import time
 from django.http import JsonResponse
 from rest_framework.decorators import api_view
@@ -212,25 +212,26 @@ def background_video_processing(request,pk):
                 cv2.putText(frame, "PLAY", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)                
                 
                 
-                if not gameStarted:     #enters if condition if it is true so not gameStarted is true(! of false = true)
-                    start_timer(request, pk)
-                    print('timer started==========================')
-                    frame
-                    gameStarted=True
-                    count += 1
-                    print('count',count)
-                    # time.sleep(1)  # Delay for 1 second
+            if not gameStarted:     #enters if condition if it is false because not gameStarted is true(! of false = true)
+                start_timer(request, pk)
+                print('timer started==========================')
+                frame
+                gameStarted=True
+                count += 1
+                print('count',count)
 
-                skip_until=current_time + 1   
-
-            if gameStarted and current_time > skip_until:
-                    print(area,'-----------------------')
-                    if 13000 > area > 10000 and len(approxed)==3:
-                        cv2.putText(frame, "end", (50, 100), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)                
-                        print('*******game end*******')
-                        gameStarted = False
-                        stop_timer(request,pk)
-                        print('boolean:', gameStarted)
+                skip_until=current_time + 1    # time.sleep(1)  # Delay for 1 second
+            if start_timer:                                
+                Check_timer(request,pk)
+            
+            # if gameStarted and current_time > skip_until:
+            #         print(area,'-----------------------')
+            #         if 13000 > area > 10000 and len(approxed)==3:
+            #             cv2.putText(frame, "end", (50, 100), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)                
+            #             print('*******game end*******')
+            #             gameStarted = False
+            #             stop_timer(request,pk)
+            #             print('boolean:', gameStarted)
             current_frame = frame
 
                     
@@ -240,10 +241,10 @@ def background_video_processing(request,pk):
             #     print("Game Over")
                 # cv2.putText(frame, "PLAY", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
            
-            ret, jpeg = cv2.imencode('.jpg', frame)
-            frame = jpeg.tobytes()
-            yield (b'--frame\r\n'
-                b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
+            # ret, jpeg = cv2.imencode('.jpg', frame)
+            # frame = jpeg.tobytes()
+            # yield (b'--frame\r\n'
+            #     b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
     
             # cv2.imshow('blur', imgGray)
             # cv2.imshow('binary video',canny2)
