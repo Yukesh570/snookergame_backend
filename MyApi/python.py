@@ -11,11 +11,15 @@ from .models import *
 from django.shortcuts import render ,get_object_or_404
 from django.contrib.sessions.models import Session
 
+from django.http import HttpResponseServerError
+from decimal import Decimal
+
 # Define the lower and upper bounds for red color in HSV space
 
 
 
 
+# Connect the signal handler
 def detectRedObjects(frame):
     lower_red1 = np.array([160, 40, 145])
     upper_red1 = np.array([180, 255, 255])
@@ -60,18 +64,17 @@ def contour_touching(contour1,contour2,threshold_distance):
                 return False
             
 
-
 current_frame_position = 0
 current_frame = None
 gameStarted = False
 #////////////////////////////////////////////////////////////////// WEBCAM
 
-def background_video_processing(request,pk):
-    person=get_object_or_404(Person,tableno=pk)
+def background_video_processing(request,pk,pk1):
+    person=get_object_or_404(Person,id=pk1)
     table=get_object_or_404(Table,tableno=pk)
 
     # video_path = r'C:\Users\Yukesh\Downloads\snookervideo\comined2.mp4'  # Replace with your video file path
-    global current_frame, current_frame_position, gameStarted
+    global global_button_state,current_frame, current_frame_position, gameStarted
     # Retrieve session variables
   
 
@@ -91,7 +94,8 @@ def background_video_processing(request,pk):
     area=0
     approxed=0
     skip_until=0 
-     
+   
+
     while cap.isOpened():
         current_time=time.time()      #to get the current time
         ret, frame = cap.read()
@@ -208,6 +212,9 @@ def background_video_processing(request,pk):
     # Adjust this value according to your requirement
 
         # Check if the frame is not empty
+
+
+
         if frame is not None:
             # cv2.imshow('binary video',dst)
             # cv2.imshow('median video',median_blur_white)
@@ -223,16 +230,20 @@ def background_video_processing(request,pk):
                 count += 1
                 if table.frame_based: 
                     if count>person.frame:
+                        print(person.frame)
                         print("Played more than their limited frame")
-                    if count >=1:
-                        table.price+=table.per_frame
-
-
+                    if count :
+                        table.price=Decimal('0.0')
+                        table.price=table.price+table.per_frame
+                        print('-------',table.price)
+                        table.save()
                 print('count',count)
 
                 skip_until=current_time + 1    # time.sleep(1)  # Delay for 1 second
             if start_timer:                                
                 Check_timer(request,pk)
+
+           
             
             # if gameStarted and current_time > skip_until:
             #         print(area,'-----------------------')
@@ -243,8 +254,7 @@ def background_video_processing(request,pk):
             #             stop_timer(request,pk)
             #             print('boolean:', gameStarted)
             current_frame = frame
-
-                    
+           
             # if masks_overlap(red_mask, mask):
             #     print("Play")
             # else:
@@ -368,10 +378,10 @@ def botton(request,pk):
 #//////////////////////////////////////////////////////TESTING
 
 
-def background_run(request,pk):
+def background_run(request,pk,pk1):
         # background_video_processing(request, pk)
 
-        return StreamingHttpResponse(background_video_processing(request, pk),content_type='multipart/x-mixed-replace; boundary=frame')
+        return StreamingHttpResponse(background_video_processing(request, pk,pk1),content_type='multipart/x-mixed-replace; boundary=frame')
 
 
 
