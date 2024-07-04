@@ -67,6 +67,9 @@ gameStarted = False
 #////////////////////////////////////////////////////////////////// WEBCAM
 
 def background_video_processing(request,pk):
+    person=get_object_or_404(Person,tableno=pk)
+    table=get_object_or_404(Table,tableno=pk)
+
     # video_path = r'C:\Users\Yukesh\Downloads\snookervideo\comined2.mp4'  # Replace with your video file path
     global current_frame, current_frame_position, gameStarted
     # Retrieve session variables
@@ -218,6 +221,13 @@ def background_video_processing(request,pk):
                 frame
                 gameStarted=True
                 count += 1
+                if table.frame_based: 
+                    if count>person.frame:
+                        print("Played more than their limited frame")
+                    if count >=1:
+                        table.price+=table.per_frame
+
+
                 print('count',count)
 
                 skip_until=current_time + 1    # time.sleep(1)  # Delay for 1 second
