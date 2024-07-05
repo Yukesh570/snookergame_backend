@@ -200,10 +200,9 @@ def getalltable(request):
 def start_timer(request,pk):
     table =get_object_or_404(Table,tableno=pk)
     if table.start_time is not None:
-     return JsonResponse({'status': 'Timer already started'})
+       return JsonResponse({'status': 'Timer already started'})
     request.session['start_time'] = time.time()
     table.start_time= timezone.now()
-    table.time = 0
     # table.is_running =True
     table.save()
     print('=====================================================stared',table.start_time)
@@ -265,5 +264,25 @@ def Check_timer(request,pk):
     return JsonResponse({'status': 'Timer '})
 
     
+def watch_timer(request,pk):
+    table=get_object_or_404(Table,tableno=pk)
+    if table.start_time is None:
+        return JsonResponse({'error': 'Start time is not set'}, status=400)
+    current_time = time.time()  # Get current time in seconds since the epoch
+    elapsed_time = current_time - table.start_time.timestamp() 
+    table.elapsed_time = Decimal(elapsed_time) 
+    table.price=(table.rate * table.elapsed_time)/Decimal(60)
+    print('---------',table.price)
 
+    total_seconds = int(table.elapsed_time)
+    hours, remainder = divmod(total_seconds, 3600)
+    minutes, seconds = divmod(remainder, 60)
+    table.played_time = f"{hours:02}:{minutes:02}:{seconds:02}"
+    played_time_str=table.played_time
+    #convert played_time to timedelta
+    hours,minutes,seconds= map(int,played_time_str.split(':'))
+    
+    table.save()
+
+    return JsonResponse({'status': 'Timer '})
 
