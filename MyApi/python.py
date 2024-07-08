@@ -94,7 +94,8 @@ def background_video_processing(request,pk,pk1):
     area=0
     approxed=0
     skip_until=0 
-   
+    current_frame = {}  # Initialize current_frame as a dictionary
+
 
     while cap.isOpened():
         current_time=time.time()      #to get the current time
@@ -253,7 +254,7 @@ def background_video_processing(request,pk,pk1):
             #             gameStarted = False
             #             stop_timer(request,pk)
             #             print('boolean:', gameStarted)
-            current_frame = frame
+            current_frame[pk] = frame
            
             # if masks_overlap(red_mask, mask):
             #     print("Play")
@@ -261,10 +262,10 @@ def background_video_processing(request,pk,pk1):
             #     print("Game Over")
                 # cv2.putText(frame, "PLAY", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
            
-            # ret, jpeg = cv2.imencode('.jpg', frame)
-            # frame = jpeg.tobytes()
-            # yield (b'--frame\r\n'
-            #     b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
+            ret, jpeg = cv2.imencode('.jpg', frame)
+            frame = jpeg.tobytes()
+            yield (b'--frame\r\n'
+                b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
     
             # cv2.imshow('blur', imgGray)
             # cv2.imshow('binary video',canny2)
@@ -287,8 +288,8 @@ def video_feed(request, pk):
     def frame_generator():
         global current_frame
         while True:
-            if current_frame is not None and isinstance(current_frame, np.ndarray):
-                ret, jpeg = cv2.imencode('.jpg', current_frame)
+            if pk in current_frame is not None and isinstance(current_frame[pk], np.ndarray):
+                ret, jpeg = cv2.imencode('.jpg', current_frame[pk])
                 if ret:
                     frame = jpeg.tobytes()
                     yield (b'--frame\r\n'

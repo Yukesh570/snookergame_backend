@@ -11,6 +11,7 @@ urlpatterns = [
     path('updatetable/<str:pk>/', views.updatetable, name='updatetable'),
     path('chooseGame/<str:pk>/', views.chooseGame, name='chooseGame'),
     path('video_feed/', views.video_feed, name='video_feed'),
+    path('timer_video_feed/<int:pk>/', arduino.timer_video_feed, name='timer_video_feed'),
 
     path('gettable/<str:pk>/', views.gettable, name='gettable'),
     path('getalltable/', views.getalltable, name='getalltable'),

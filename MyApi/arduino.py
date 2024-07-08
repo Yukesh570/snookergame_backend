@@ -6,8 +6,10 @@ from .views import stop_timer,start_timer,Check_timer,watch_timer
 from django.shortcuts import render ,get_object_or_404
 from .models import *
 from decimal import Decimal
-
+import cv2
+import numpy as np
 button_state_changed = Signal()
+from django.http import StreamingHttpResponse
 
 # Define a global variable to store the button state
 global_button_state = ""
@@ -83,77 +85,34 @@ def call_read_button_state(request,pk):
     except serial.SerialException as e:
         print(f"Error opening serial port: {e}")
         return JsonResponse({'status': 'error', 'message': str(e)})
-# import serial
-# from django.dispatch import Signal
 
-# button_state_changed = Signal()
 
-# # Define global variables to store the button states
-# button_state_1 = ""
-# button_state_2 = ""
-# running = False
 
-# def read_button_states(serial_port):
-#     global button_state_1, button_state_2
-#     try:
-#         while True:
-#             if serial_port.in_waiting > 0:
-#                 line = serial_port.readline().decode('utf-8').strip()
-#                 states = line.split(',')
-#                 if len(states) == 2:
-#                     button_state_2,button_state_1  = states
-#                     button_state_1 = button_state_1.strip()
-#                     button_state_2 = button_state_2.strip()
-                    
-#                     if button_state_1 == "1" :
-#                             print("Started")
-#                     if button_state_2 == "1":
-#                             print("Stopped")
-                            
+def timer_video_feed(request, pk):
+    cap = cv2.VideoCapture(cv2.CAP_ANY)  # Use 0 for the default webcam
+    if not cap.isOpened():
+        raise IOError("Webcam cannot be opened.")
+    
+    skip_frames = 2
+    frame_count = 0
 
-#                     button_state_changed.send(sender=None, button_state_1=button_state_1, button_state_2=button_state_2)
-#                     print(f"Button states are: {button_state_1}, {button_state_2}")
-                
-#     except KeyboardInterrupt:
-#         print("Exiting program")
-#     finally:
-#         serial_port.close()
-#         print("Serial port closed.")
+    def generate_frames():
+        nonlocal frame_count
+        while cap.isOpened():
+            ret, frame = cap.read()
+            if not ret:
+                break
 
-# if __name__ == '__main__':
-#     # Replace 'COM7' with the correct serial port for your Arduino
-#     arduino_port = 'COM7'
-#     baud_rate = 9600
+            # Skip frames
+            frame_count += 1
 
-#     try:
-#         serial_port = serial.Serial(arduino_port, baud_rate, timeout=1)
-#         print(f"Connected to {arduino_port} at {baud_rate} baud.")
-#         read_button_states(serial_port)
-#     except serial.SerialException as e:
-#         print(f"Error opening serial port: {e}")
-# import serial
-# import time
+            if frame_count % skip_frames != 0:
+                continue
 
-# # Define the serial port (adjust this to your specific port)
-# ser = serial.Serial('COM7', 9600, timeout=1)  # COM3 is an example, adjust to your Arduino's port
+            # Retrieve values
+            frame = cv2.resize(frame, (500, 500)) 
+            ret, jpeg = cv2.imencode('.jpg', frame)
+            frame = jpeg.tobytes()
+            yield (b'--frame\r\n'b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
 
-# # Wait for the serial connection to establish
-# time.sleep(2)
-
-# try:
-#     while True:
-#         # Send a request to read button states
-#         ser.write(b'r\n')
-        
-#         # Read the response
-#         response = ser.readline().decode('utf-8').strip()
-        
-#         # Print the response (format: buttonState1,buttonState2)
-#         print(response)
-        
-#         # Delay before next read
-        
-
-# except KeyboardInterrupt:
-#     ser.close()  # Close the serial port on Ctrl+C
-#     print("Serial connection closed.")
+    return StreamingHttpResponse(generate_frames(), content_type='multipart/x-mixed-replace; boundary=frame')
