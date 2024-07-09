@@ -175,6 +175,29 @@ def chooseGame(request,pk):
         return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
+@api_view(['PUT'])
+def updatewholetable(request,pk):
+    data=request.data
+    try:
+        frame_limit_duration = parse_duration(data['frame_limit'])
+
+        table_instance = Table.objects.get(tableno=pk)
+        table_instance.rate = data.get('rate', table_instance.rate)
+        table_instance.frame_limit = frame_limit_duration
+        table_instance.ac = data.get('ac', table_instance.ac)
+        table_instance.per_frame = data.get('per_frame', table_instance.per_frame)
+
+        table_instance.save()
+        serializer = TableSerializer(table_instance, many=False)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    except Table.DoesNotExist:
+        return Response({'detail': 'Table not found'}, status=status.HTTP_404_NOT_FOUND)
+    except Person.DoesNotExist:
+        return Response({'detail': 'Associated Person not found'}, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
 @api_view(['GET'])
 def gettable(request,pk):
     table=Table.objects.get(tableno=pk)
@@ -241,6 +264,15 @@ def stop_timer(request,pk):
         print('working')
         return JsonResponse({'status': 'Timer stopped' })
 
+# def stop_running(request, pk):
+#     table = get_object_or_404(Table, tableno=pk)  # Get the table instance by its tableno
+    
+#     if table.is_running:  # Check if the table is actually running
+#         table.is_running = False  # Stop the table running state
+#         table.save()  # Save the updated state to the database
+#         return JsonResponse({'status': 'Timer stopped'})
+#     else:
+#         return JsonResponse({'status': 'Timer was not running'})
 
 def Check_timer(request,pk):
     table=get_object_or_404(Table,tableno=pk)

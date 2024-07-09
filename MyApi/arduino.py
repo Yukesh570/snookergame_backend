@@ -40,7 +40,8 @@ def read_button_state(serial_port,request,pk):
                     if toople:
                         print("Stopped")
                         stop_timer(request,pk)
-                      
+                        # stop_running(request,pk)
+                        # table.save()
                         toople=False
                         
                         
