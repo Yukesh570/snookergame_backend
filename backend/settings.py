@@ -43,7 +43,8 @@ INSTALLED_APPS = [
     'MyApi.apps.MyapiConfig',
     'rest_framework',
     "corsheaders",
-
+    'django_celery_results',
+    'django_celery_beat',
 ]
 
 MIDDLEWARE = [
@@ -78,6 +79,19 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'backend.wsgi.application'
 
+
+
+# Celery Configuration
+CELERY_BROKER_URL = 'redis://127.0.0.1:6379'  # Example for Redis broker
+# CELERY_RESULT_BACKEND ='redis://127.0.0.1:6379'
+CELERY_ACCEPT_CONTENT=['application/json']
+CELERY_RESULT_SERIALIZER='json'
+CELERY_TASK_SERIALIZER='json'
+CELERY_TIMEZONE='Asia/Kathmandu'
+CELERY_RESULT_BACKEND='django-db'
+
+#celery_beat_setting
+CELERY_BEAT_SCHEDULER='django_celery_beat.schedulers:DatabaseScheduler'
 
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases

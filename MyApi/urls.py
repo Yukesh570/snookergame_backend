@@ -1,5 +1,5 @@
 from django.urls import path
-from . import views , python ,timer,arduino
+from . import views , python ,timer, arduino,tasks
 from rest_framework.routers import DefaultRouter
 
 
@@ -18,6 +18,7 @@ urlpatterns = [
     path('gettable/<str:pk>/', views.gettable, name='gettable'),
     path('getalltable/', views.getalltable, name='getalltable'),
     path('timer/<str:pk>/', timer.timer, name='timer'),
+    path('test/', views.test, name='test'),
 
     path('index/', views.index, name='index'),
     path('arduino/<str:pk>/', arduino.call_read_button_state, name='call_read_button_state'),
@@ -30,7 +31,7 @@ urlpatterns = [
     #//
     path('game_start/<int:pk>/', python.background_run, name='video_stream'),
 
-    path('botton/<int:pk>/', python.botton, name='botton'),
+    path('deletetable/<int:pk>/', views.deletetable, name='deletetable'),
 
 ]
    

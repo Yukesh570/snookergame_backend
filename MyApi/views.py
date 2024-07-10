@@ -15,8 +15,15 @@ import datetime
 from django.http import StreamingHttpResponse
 import cv2
 from datetime import timedelta
-
 from django.core.validators import validate_email
+from django.http import HttpResponse
+from .tasks import test_func
+# from .python import background_video_processing
+def test(request):
+    test_func.delay()
+    return HttpResponse("done")
+
+
 
 def parse_duration(duration_str):
     try:
@@ -216,8 +223,26 @@ def getalltable(request):
 
 # def index(request):
 #     return render(request,'index.html')
+@api_view(['PUT'])
+def deletetable(request,pk):
+    try:
+        table = Table.objects.get(pk=pk)
+        table.person = None
+        table.price = None
+        table.start_time = None
+        table.elapsed_time = None
+        table.end_time = None
+        table.button = False
+        table.inactive = False
+        table.is_running = False
+        table.played_time = None
+        table.frame_based = False
+        table.time_based = False
 
-
+        table.save()
+        return Response({"msg":"Table data have been deleted"}, status=status.HTTP_204_NO_CONTENT)
+    except Table.DoesNotExist:
+        return Response({'error': 'Table not found'}, status=status.HTTP_404_NOT_FOUND)
 
 
 def start_timer(request,pk):

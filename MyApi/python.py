@@ -10,6 +10,7 @@ from django.http import HttpResponse
 from .models import *
 from django.shortcuts import render ,get_object_or_404
 from django.contrib.sessions.models import Session
+from celery import shared_task
 
 from django.http import HttpResponseServerError
 from decimal import Decimal
@@ -69,7 +70,10 @@ current_frame = None
 gameStarted = False
 #////////////////////////////////////////////////////////////////// WEBCAM
 
-def background_video_processing(request,pk,pk1):
+
+
+@shared_task(bind=True)
+def background_video_processing(self,request,pk,pk1):
     person=get_object_or_404(Person,id=pk1)
     table=get_object_or_404(Table,tableno=pk)
 
@@ -288,6 +292,7 @@ def video_feed(request, pk):
     def frame_generator():
         global current_frame
         while True:
+           if Table.is_running: 
             if pk in current_frame is not None and isinstance(current_frame[pk], np.ndarray):
                 ret, jpeg = cv2.imencode('.jpg', current_frame[pk])
                 if ret:
@@ -305,50 +310,6 @@ def video_feed(request, pk):
 
     return StreamingHttpResponse(frame_generator(), content_type='multipart/x-mixed-replace; boundary=frame')
 
-# def video_feed(request, pk):
-#     def generate():
-#         global current_frame
-#         print(current_frame)
-#         while True:
-#             cap = cv2.VideoCapture(cv2.CAP_ANY)  # Change to 0 for default webcam
-#             if not cap.isOpened():
-#                 raise IOError("Webcam cannot be opened.")
-            
-#             while cap.isOpened():
-#                 ret, current_frame = cap.read()
-#                 if not ret:
-#                     break
-#                 # frame  = current_frame
-#                 # Convert frame to JPEG format
-#                 if current_frame is None or current_frame.size == 0:
-#                     continue
-                
-#                 ret, jpeg = cv2.imencode('.jpg', current_frame)
-#                 if not ret:
-#                     continue
-                
-#                 frame_bytes = jpeg.tobytes()
-
-#                 yield (b'--frame\r\n'
-#                     b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n\r\n')
-
-#             cap.release()
-
-#     return StreamingHttpResponse(generate(), content_type='multipart/x-mixed-replace; boundary=frame')
-
-# def video_feed(request,pk):
-#     global current_frame
-    
-#     # Call your video processing function to ensure current_frame is updated
-#     # Note: Replace 'pk' with the appropriate parameter for your function
-#     def generate_frames(pk):
-#             generator = background_video_processing(request, pk)
-#             for chunk in generator:
-#                 yield chunk
-        
-#         # Use a separate generator to avoid interfering with the original generator
-#     response = StreamingHttpResponse(generate_frames(pk), content_type='multipart/x-mixed-replace; boundary=frame')
-#     return response
 
 
 def index(request):
@@ -359,23 +320,7 @@ def index(request):
 def index(request,pk):
     return render(request, 'index.html',{'pk':pk})
 
-def botton(request,pk):
-    table = get_object_or_404(Table, id=pk)  # Replace with the correct logic to identify the Table instance
-    if table.button==False:
 
-        table.button=True
-    else:
-        table.button=False
-    table.save()
-    if table.button==True:
-        start_timer(request,pk)
-
-    else:
-        stop_timer(request,pk)
-
-
-
-    return JsonResponse({'botton': table.button})
 #//////////////////////////////////////////////////////TESTING
 
 
@@ -383,8 +328,6 @@ def background_run(request,pk,pk1):
         # background_video_processing(request, pk)
 
         return StreamingHttpResponse(background_video_processing(request, pk,pk1),content_type='multipart/x-mixed-replace; boundary=frame')
-
-
 
 
 

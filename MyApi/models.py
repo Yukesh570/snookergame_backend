@@ -18,13 +18,13 @@ def get_current_time():
     return datetime.now().time()
 class Table(models.Model):
 
-    tableno= models.CharField( max_length=100,null=True , blank=True)
+    tableno= models.CharField( max_length=100,primary_key=True )
     person=models.ForeignKey(Person,null=True,  blank=True,on_delete=models.SET_NULL,related_name='table')
     rate=models.DecimalField(max_digits=7,decimal_places=2,default=0)
     price=models.DecimalField(max_digits=7,decimal_places=2,null=True , blank=True) 
-    start_time = models.DateTimeField(null=True, blank=True)
+    start_time = models.DateTimeField(null=True, blank=True,default=timezone.now)
     elapsed_time=models.DecimalField(max_digits=7,decimal_places=2,null=True , blank=True)
-    end_time = models.DateTimeField(null=True, blank=True)
+    end_time = models.DateTimeField(null=True, blank=True,default=timezone.now)
     # frame_time_limit = models.TimeField(default=get_current_time)
     frame_limit=models.DurationField(null=True , blank=True)
 
